@@ -1,6 +1,11 @@
 <?php
 require_once '../includes/auth_check.php';
 require_once '../config/db.php';
+$successMsg = '';
+if (isset($_GET['success']) && $_GET['success'] == 1) {
+    $successMsg = 'User created successfully!';
+}
+
 
 $stmt = $pdo->query("SELECT id, first_name, last_name, email, phone, last_login, last_password_change FROM users WHERE is_admin = 0");
 $users = $stmt->fetchAll();
@@ -46,6 +51,13 @@ $users = $stmt->fetchAll();
 </nav>
 
 <div class="container user-card">
+<?php if (!empty($successMsg)): ?>
+    <div class="alert alert-success alert-dismissible fade show" role="alert">
+        <?= $successMsg ?>
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+<?php endif; ?>
+
     <h4 class="mb-4 text-primary">Registered Users</h4>
     <div class="table-responsive">
         <table class="table table-bordered table-striped align-middle">
@@ -79,5 +91,6 @@ $users = $stmt->fetchAll();
         </table>
     </div>
 </div>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM" crossorigin="anonymous"></script>
 </body>
 </html>
