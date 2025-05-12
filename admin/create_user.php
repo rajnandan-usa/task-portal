@@ -10,28 +10,37 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $last = trim($_POST['last_name']);
     $email = trim($_POST['email']);
     $phone = trim($_POST['phone']);
-    $password = trim($_POST['password'] ?? '');    
+    $password = trim($_POST['password'] ?? '');
 
     if (!$first || !$last || !$email || !$phone || !$password) {
         $error = 'All fields are required.';
     } else {
-        $check = $pdo->prepare("SELECT id FROM users WHERE email = ? LIMIT 1");
-        $check->execute([$email]);
-        if ($check->fetch()) {
-            $error = 'Email already exists.';
-        } else {
-            $hashed = password_hash($password, PASSWORD_DEFAULT);
-            $stmt = $pdo->prepare("
-                INSERT INTO users (first_name, last_name, email, phone, password, is_admin, last_login, last_password_change)
-                VALUES (?, ?, ?, ?, ?, 0, NOW(), NULL)
-            ");
-            $stmt->execute([$first, $last, $email, $phone, $hashed]);
-            header('Location: users.php?success=1');
-            exit;
+        try {
+            // Check if email already exists
+            $check = $pdo->prepare("SELECT id FROM users WHERE email = ? LIMIT 1");
+            $check->execute([$email]);
+
+            if ($check->fetch()) {
+                $error = 'Email already exists.';
+            } else {
+                $hashed = password_hash($password, PASSWORD_DEFAULT);
+
+                $stmt = $pdo->prepare("
+                    INSERT INTO users (first_name, last_name, email, phone, password, is_admin, last_login, last_password_change)
+                    VALUES (?, ?, ?, ?, ?, 0, NOW(), NULL)
+                ");
+                $stmt->execute([$first, $last, $email, $phone, $hashed]);
+
+                header('Location: users.php?success=1');
+                exit;
+            }
+        } catch (PDOException $e) {
+            $error = 'Database error: ' . $e->getMessage();
         }
     }
 }
 ?>
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
